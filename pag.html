@@ -1,0 +1,1798 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Línea del Tiempo de los Microprocesadores</title>
+
+    <style>
+
+        /* ================================
+           CONFIGURACIÓN GENERAL
+        ================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f0a1f;
+            color: #f3e8ff;
+            line-height: 1.5;
+        }
+
+        /* ================================
+           ENCABEZADO
+        ================================= */
+
+        header {
+            background:
+                linear-gradient(
+                    rgba(30, 10, 45, .90),
+                    rgba(15, 5, 25, .97)
+                ),
+                radial-gradient(
+                    circle at top,
+                    #9333ea,
+                    #1e0633 65%
+                );
+
+            padding: 70px 20px;
+            text-align: center;
+
+            border-bottom: 1px solid #6b21a8;
+        }
+
+        header h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        header h1 span {
+            color: #d946ef;
+        }
+
+        header p {
+            max-width: 850px;
+            margin: auto;
+            color: #c4b5fd;
+            font-size: 1.1rem;
+        }
+
+        /* ================================
+           ESTADÍSTICAS
+        ================================= */
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 35px;
+        }
+
+        .stat {
+            background: rgba(45, 15, 65, .8);
+            border: 1px solid #6b21a8;
+            padding: 15px 25px;
+            border-radius: 12px;
+            min-width: 150px;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 1.8rem;
+            color: #e879f9;
+        }
+
+        .stat span {
+            color: #a78bfa;
+            font-size: .85rem;
+        }
+
+        /* ================================
+           BUSCADOR Y FILTRO
+        ================================= */
+
+        .controls {
+            max-width: 1100px;
+            margin: 35px auto 10px;
+            padding: 0 20px;
+
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .controls input,
+        .controls select {
+            flex: 1;
+            min-width: 220px;
+
+            padding: 14px 18px;
+
+            background: #1a0b2e;
+            color: #f5d0fe;
+
+            border: 1px solid #6b21a8;
+            border-radius: 10px;
+
+            outline: none;
+        }
+
+        .controls input::placeholder {
+            color: #a78bfa;
+        }
+
+        .controls input:focus,
+        .controls select:focus {
+            border-color: #d946ef;
+
+            box-shadow:
+                0 0 10px rgba(217, 70, 239, .25);
+        }
+
+        /* ================================
+           LÍNEA DE TIEMPO
+        ================================= */
+
+        .timeline {
+            position: relative;
+
+            max-width: 1200px;
+
+            margin: 50px auto;
+
+            padding: 20px;
+        }
+
+        .timeline::before {
+            content: "";
+
+            position: absolute;
+
+            left: 50%;
+
+            top: 0;
+            bottom: 0;
+
+            width: 4px;
+
+            background: linear-gradient(
+                to bottom,
+                #f97316,
+                #eab308,
+                #84cc16,
+                #14b8a6
+            );
+
+            transform: translateX(-50%);
+
+            border-radius: 5px;
+        }
+
+        /* ================================
+           ELEMENTOS
+        ================================= */
+
+        .timeline-item {
+            position: relative;
+
+            width: 50%;
+
+            padding: 25px 45px;
+
+            opacity: 0;
+
+            transform: translateY(30px);
+
+            animation: aparecer .7s forwards;
+        }
+
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            text-align: right;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            text-align: left;
+        }
+
+        @keyframes aparecer {
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        }
+
+        /* ================================
+           PUNTOS
+        ================================= */
+
+        .dot {
+            position: absolute;
+
+            top: 45px;
+
+            width: 20px;
+            height: 20px;
+
+            background: #f97316;
+
+            border: 4px solid #0f0a1f;
+
+            border-radius: 50%;
+
+            z-index: 2;
+
+            box-shadow:
+                0 0 20px #f97316;
+        }
+
+        .timeline-item:nth-child(odd) .dot {
+            right: -10px;
+        }
+
+        .timeline-item:nth-child(even) .dot {
+            left: -10px;
+        }
+
+        /* ================================
+           TARJETAS
+        ================================= */
+
+        .card {
+            background:
+                linear-gradient(
+                    145deg,
+                    #21102f,
+                    #12071c
+                );
+
+            border: 1px solid #581c87;
+
+            border-radius: 18px;
+
+            padding: 20px;
+
+            text-align: left;
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, .4);
+
+            transition:
+                transform .3s,
+                border-color .3s,
+                box-shadow .3s;
+        }
+
+        .card:hover {
+
+            transform: translateY(-8px);
+
+            border-color: #f97316;
+
+            box-shadow:
+                0 20px 50px rgba(249, 115, 22, .20);
+        }
+
+        /* ================================
+           IMÁGENES
+        ================================= */
+
+        .processor-image {
+
+            width: 100%;
+
+            height: 220px;
+
+            object-fit: contain;
+
+            background: #16091f;
+
+            border-radius: 12px;
+
+            display: block;
+
+            margin-bottom: 18px;
+
+            border: 1px solid #4c1d95;
+
+            padding: 10px;
+        }
+
+        /* ================================
+           AÑO
+        ================================= */
+
+        .year {
+
+            display: inline-block;
+
+            background: #f97316;
+
+            color: white;
+
+            padding: 5px 12px;
+
+            border-radius: 20px;
+
+            font-size: .8rem;
+
+            font-weight: bold;
+
+            margin-bottom: 10px;
+
+            box-shadow:
+                0 0 10px rgba(249, 115, 22, .25);
+        }
+
+        /* ================================
+           INFORMACIÓN
+        ================================= */
+
+        .card h2 {
+
+            color: white;
+
+            margin-bottom: 5px;
+
+            font-size: 1.5rem;
+        }
+
+        .manufacturer {
+
+            color: #e879f9;
+
+            font-weight: bold;
+
+            margin-bottom: 15px;
+        }
+
+        .description {
+
+            color: #c4b5fd;
+
+            font-size: .9rem;
+
+            margin-bottom: 18px;
+        }
+
+        /* ================================
+           ESPECIFICACIONES
+        ================================= */
+
+        .specs {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 10px;
+        }
+
+        .spec {
+
+            background: #16091f;
+
+            padding: 10px;
+
+            border-radius: 8px;
+
+            border: 1px solid #4c1d95;
+        }
+
+        .spec small {
+
+            display: block;
+
+            color: #a78bfa;
+
+            font-size: .7rem;
+
+            text-transform: uppercase;
+        }
+
+        .spec strong {
+
+            color: #f3e8ff;
+
+            font-size: .9rem;
+        }
+
+        /* ================================
+           SIN RESULTADOS
+        ================================= */
+
+        .no-results {
+
+            text-align: center;
+
+            padding: 60px;
+
+            color: #a78bfa;
+
+            font-size: 1.2rem;
+        }
+
+        /* ================================
+           FOOTER
+        ================================= */
+
+        footer {
+
+            text-align: center;
+
+            padding: 50px 20px;
+
+            color: #a78bfa;
+
+            border-top: 1px solid #4c1d95;
+
+            margin-top: 50px;
+        }
+
+        footer strong {
+
+            color: #f97316;
+        }
+
+        /* ================================
+           RESPONSIVE
+        ================================= */
+
+        @media (max-width: 800px) {
+
+            .timeline::before {
+
+                left: 20px;
+            }
+
+            .timeline-item,
+            .timeline-item:nth-child(even),
+            .timeline-item:nth-child(odd) {
+
+                width: 100%;
+
+                left: 0;
+
+                padding-left: 55px;
+
+                padding-right: 5px;
+
+                text-align: left;
+            }
+
+            .timeline-item .dot,
+            .timeline-item:nth-child(odd) .dot,
+            .timeline-item:nth-child(even) .dot {
+
+                left: 10px;
+
+                right: auto;
+            }
+
+            .processor-image {
+
+                height: 200px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- =================================
+         ENCABEZADO
+    ================================== -->
+
+    <header>
+
+        <h1>
+            Evolución de los
+            <span>Microprocesadores</span>
+        </h1>
+
+        <p>
+            Línea del tiempo desde el Intel 4004
+            de 1971 hasta los procesadores modernos.
+            Observa cómo aumentaron los bits,
+            la frecuencia y la cantidad de transistores.
+        </p>
+
+        <div class="stats">
+
+            <div class="stat">
+
+                <strong id="total">
+                    50
+                </strong>
+
+                <span>
+                    Procesadores
+                </span>
+
+            </div>
+
+            <div class="stat">
+
+                <strong>
+                    1971
+                </strong>
+
+                <span>
+                    Primer modelo
+                </span>
+
+            </div>
+
+            <div class="stat">
+
+                <strong>
+                    2024
+                </strong>
+
+                <span>
+                    Modelo más reciente
+                </span>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- =================================
+         CONTROLES
+    ================================== -->
+
+    <section class="controls">
+
+        <input
+            type="text"
+            id="search"
+            placeholder="Buscar procesador..."
+        >
+
+        <select id="manufacturer">
+
+            <option value="todos">
+                Todos los fabricantes
+            </option>
+
+            <option value="Intel">
+                Intel
+            </option>
+
+            <option value="AMD">
+                AMD
+            </option>
+
+            <option value="Motorola">
+                Motorola
+            </option>
+
+            <option value="MOS Technology">
+                MOS Technology
+            </option>
+
+            <option value="Zilog">
+                Zilog
+            </option>
+
+            <option value="ARM">
+                ARM
+            </option>
+
+            <option value="Apple">
+                Apple
+            </option>
+
+            <option value="IBM">
+                IBM
+            </option>
+
+        </select>
+
+    </section>
+
+    <!-- =================================
+         LÍNEA DE TIEMPO
+    ================================== -->
+
+    <main
+        class="timeline"
+        id="timeline">
+    </main>
+
+    <!-- =================================
+         FOOTER
+    ================================== -->
+
+    <footer>
+
+        <p>
+            Línea del tiempo educativa sobre
+            la evolución de los
+            <strong>microprocesadores</strong>.
+        </p>
+
+        <p>
+            Desde los primeros procesadores
+            de 4 bits hasta los modernos
+            procesadores de 64 bits.
+        </p>
+
+    </footer>
+
+
+<script>
+
+/* ==========================================
+   BASE DE DATOS DE MICROPROCESADORES
+========================================== */
+
+const procesadores = [
+
+    {
+        nombre: "Intel 4004",
+        fecha: "15 de noviembre de 1971",
+        año: 1971,
+        bits: "4 bits",
+        velocidad: "740 kHz",
+        transistores: "2,300",
+        fabricante: "Intel",
+        wiki: "Intel_4004",
+        descripcion:
+        "Primer microprocesador comercial de un solo chip. Fue desarrollado originalmente para la calculadora Busicom."
+    },
+
+    {
+        nombre: "Intel 8008",
+        fecha: "1 de abril de 1972",
+        año: 1972,
+        bits: "8 bits",
+        velocidad: "500–800 kHz",
+        transistores: "3,500",
+        fabricante: "Intel",
+        wiki: "Intel_8008",
+        descripcion:
+        "Uno de los primeros microprocesadores comerciales de 8 bits."
+    },
+
+    {
+        nombre: "Intel 4040",
+        fecha: "1974",
+        año: 1974,
+        bits: "4 bits",
+        velocidad: "500–740 kHz",
+        transistores: "3,000",
+        fabricante: "Intel",
+        wiki: "Intel_4040",
+        descripcion:
+        "Sucesor del Intel 4004 con mejoras en instrucciones y capacidad."
+    },
+
+    {
+        nombre: "Intel 8080",
+        fecha: "1 de abril de 1974",
+        año: 1974,
+        bits: "8 bits",
+        velocidad: "2 MHz",
+        transistores: "6,000",
+        fabricante: "Intel",
+        wiki: "Intel_8080",
+        descripcion:
+        "Procesador fundamental en los primeros microcomputadores."
+    },
+
+    {
+        nombre: "Motorola 6800",
+        fecha: "1974",
+        año: 1974,
+        bits: "8 bits",
+        velocidad: "1 MHz",
+        transistores: "4,100",
+        fabricante: "Motorola",
+        wiki: "Motorola_6800",
+        descripcion:
+        "Microprocesador de 8 bits utilizado en numerosos sistemas."
+    },
+
+    {
+        nombre: "MOS Technology 6502",
+        fecha: "1975",
+        año: 1975,
+        bits: "8 bits",
+        velocidad: "1 MHz",
+        transistores: "3,510",
+        fabricante: "MOS Technology",
+        wiki: "MOS_Technology_6502",
+        descripcion:
+        "Procesador económico utilizado en Apple II, Commodore PET y Atari."
+    },
+
+    {
+        nombre: "Zilog Z80",
+        fecha: "1976",
+        año: 1976,
+        bits: "8 bits",
+        velocidad: "2.5 MHz",
+        transistores: "8,500",
+        fabricante: "Zilog",
+        wiki: "Zilog_Z80",
+        descripcion:
+        "Uno de los procesadores de 8 bits más populares."
+    },
+
+    {
+        nombre: "Intel 8085",
+        fecha: "marzo de 1976",
+        año: 1976,
+        bits: "8 bits",
+        velocidad: "3 MHz",
+        transistores: "6,500",
+        fabricante: "Intel",
+        wiki: "Intel_8085",
+        descripcion:
+        "Evolución del 8080 con alimentación simplificada."
+    },
+
+    {
+        nombre: "Motorola 6809",
+        fecha: "1978",
+        año: 1978,
+        bits: "8 bits",
+        velocidad: "1–2 MHz",
+        transistores: "9,000",
+        fabricante: "Motorola",
+        wiki: "Motorola_6809",
+        descripcion:
+        "Procesador de 8 bits avanzado."
+    },
+
+    {
+        nombre: "Intel 8086",
+        fecha: "8 de junio de 1978",
+        año: 1978,
+        bits: "16 bits",
+        velocidad: "5–10 MHz",
+        transistores: "29,000",
+        fabricante: "Intel",
+        wiki: "Intel_8086",
+        descripcion:
+        "Primer procesador comercial de 16 bits de Intel."
+    },
+
+    {
+        nombre: "Intel 8088",
+        fecha: "1 de junio de 1979",
+        año: 1979,
+        bits: "16 bits",
+        velocidad: "4.77–8 MHz",
+        transistores: "29,000",
+        fabricante: "Intel",
+        wiki: "Intel_8088",
+        descripcion:
+        "Variante del 8086 utilizada en el IBM PC."
+    },
+
+    {
+        nombre: "Motorola 68000",
+        fecha: "1979",
+        año: 1979,
+        bits: "16/32 bits",
+        velocidad: "4–8 MHz",
+        transistores: "68,000",
+        fabricante: "Motorola",
+        wiki: "Motorola_68000",
+        descripcion:
+        "Procesador con registros internos de 32 bits."
+    },
+
+    {
+        nombre: "Intel 80186",
+        fecha: "1982",
+        año: 1982,
+        bits: "16 bits",
+        velocidad: "6 MHz",
+        transistores: "55,000",
+        fabricante: "Intel",
+        wiki: "Intel_80186",
+        descripcion:
+        "Versión mejorada del 8086."
+    },
+
+    {
+        nombre: "Intel 80188",
+        fecha: "1982",
+        año: 1982,
+        bits: "16 bits",
+        velocidad: "6 MHz",
+        transistores: "55,000",
+        fabricante: "Intel",
+        wiki: "Intel_80188",
+        descripcion:
+        "Variante del 80186 con bus externo de 8 bits."
+    },
+
+    {
+        nombre: "Intel 80286",
+        fecha: "1 de febrero de 1982",
+        año: 1982,
+        bits: "16 bits",
+        velocidad: "6–12 MHz",
+        transistores: "134,000",
+        fabricante: "Intel",
+        wiki: "Intel_80286",
+        descripcion:
+        "Introdujo el modo protegido y permitió direccionar hasta 16 MB."
+    },
+
+    {
+        nombre: "Motorola 68010",
+        fecha: "1982",
+        año: 1982,
+        bits: "16/32 bits",
+        velocidad: "8–10 MHz",
+        transistores: "68,000",
+        fabricante: "Motorola",
+        wiki: "Motorola_68010",
+        descripcion:
+        "Evolución del Motorola 68000."
+    },
+
+    {
+        nombre: "Intel 80386 DX",
+        fecha: "17 de octubre de 1985",
+        año: 1985,
+        bits: "32 bits",
+        velocidad: "16–33 MHz",
+        transistores: "275,000",
+        fabricante: "Intel",
+        wiki: "Intel_386",
+        descripcion:
+        "Primer procesador x86 de 32 bits de Intel."
+    },
+
+    {
+        nombre: "ARM1",
+        fecha: "1985",
+        año: 1985,
+        bits: "32 bits",
+        velocidad: "8 MHz",
+        transistores: "25,000",
+        fabricante: "ARM",
+        wiki: "ARM_architecture_family",
+        descripcion:
+        "Uno de los primeros procesadores basados en ARM."
+    },
+
+    {
+        nombre: "Intel 80386 SX",
+        fecha: "1988",
+        año: 1988,
+        bits: "32 bits",
+        velocidad: "16–33 MHz",
+        transistores: "275,000",
+        fabricante: "Intel",
+        wiki: "Intel_386",
+        descripcion:
+        "Versión económica del 80386."
+    },
+
+    {
+        nombre: "Motorola 68030",
+        fecha: "1987",
+        año: 1987,
+        bits: "32 bits",
+        velocidad: "16–50 MHz",
+        transistores: "273,000",
+        fabricante: "Motorola",
+        wiki: "Motorola_68030",
+        descripcion:
+        "Procesador de 32 bits con unidad de gestión de memoria."
+    },
+
+    {
+        nombre: "Intel 80486 DX",
+        fecha: "1989",
+        año: 1989,
+        bits: "32 bits",
+        velocidad: "25–50 MHz",
+        transistores: "1.2 millones",
+        fabricante: "Intel",
+        wiki: "Intel_80486",
+        descripcion:
+        "Integró caché y unidad de coma flotante."
+    },
+
+    {
+        nombre: "AMD Am386",
+        fecha: "1991",
+        año: 1991,
+        bits: "32 bits",
+        velocidad: "25–40 MHz",
+        transistores: "275,000",
+        fabricante: "AMD",
+        wiki: "Am386",
+        descripcion:
+        "Procesador compatible con Intel 80386."
+    },
+
+    {
+        nombre: "Intel Pentium",
+        fecha: "22 de marzo de 1993",
+        año: 1993,
+        bits: "32 bits",
+        velocidad: "60–66 MHz",
+        transistores: "3.1 millones",
+        fabricante: "Intel",
+        wiki: "Pentium",
+        descripcion:
+        "Introdujo ejecución superescalar."
+    },
+
+    {
+        nombre: "PowerPC 601",
+        fecha: "1993",
+        año: 1993,
+        bits: "32 bits",
+        velocidad: "50–80 MHz",
+        transistores: "2.8 millones",
+        fabricante: "IBM",
+        wiki: "PowerPC_600",
+        descripcion:
+        "Primer procesador PowerPC comercial."
+    },
+
+    {
+        nombre: "Intel Pentium Pro",
+        fecha: "1995",
+        año: 1995,
+        bits: "32 bits",
+        velocidad: "150–200 MHz",
+        transistores: "5.5 millones",
+        fabricante: "Intel",
+        wiki: "Pentium_Pro",
+        descripcion:
+        "Orientado a estaciones de trabajo y servidores."
+    },
+
+    {
+        nombre: "AMD K5",
+        fecha: "1996",
+        año: 1996,
+        bits: "32 bits",
+        velocidad: "75–133 MHz",
+        transistores: "4.3 millones",
+        fabricante: "AMD",
+        wiki: "AMD_K5",
+        descripcion:
+        "Primer procesador x86 diseñado internamente por AMD."
+    },
+
+    {
+        nombre: "Intel Pentium MMX",
+        fecha: "1997",
+        año: 1997,
+        bits: "32 bits",
+        velocidad: "166–233 MHz",
+        transistores: "4.5 millones",
+        fabricante: "Intel",
+        wiki: "P5_(microarchitecture)",
+        descripcion:
+        "Incluyó instrucciones MMX para aplicaciones multimedia."
+    },
+
+    {
+        nombre: "AMD K6",
+        fecha: "1997",
+        año: 1997,
+        bits: "32 bits",
+        velocidad: "166–300 MHz",
+        transistores: "8.8 millones",
+        fabricante: "AMD",
+        wiki: "AMD_K6",
+        descripcion:
+        "Procesador x86 competitivo con Pentium."
+    },
+
+    {
+        nombre: "Intel Pentium II",
+        fecha: "7 de mayo de 1997",
+        año: 1997,
+        bits: "32 bits",
+        velocidad: "233–450 MHz",
+        transistores: "7.5 millones",
+        fabricante: "Intel",
+        wiki: "Pentium_II",
+        descripcion:
+        "Evolución de la arquitectura Pentium Pro."
+    },
+
+    {
+        nombre: "Intel Pentium III",
+        fecha: "1999",
+        año: 1999,
+        bits: "32 bits",
+        velocidad: "450 MHz–1.4 GHz",
+        transistores: "9.5–28 millones",
+        fabricante: "Intel",
+        wiki: "Pentium_III",
+        descripcion:
+        "Añadió instrucciones SSE."
+    },
+
+    {
+        nombre: "AMD Athlon",
+        fecha: "1999",
+        año: 1999,
+        bits: "32 bits",
+        velocidad: "500 MHz–1.4 GHz",
+        transistores: "22 millones",
+        fabricante: "AMD",
+        wiki: "Athlon",
+        descripcion:
+        "Competidor directo del Pentium III."
+    },
+
+    {
+        nombre: "Intel Pentium 4",
+        fecha: "20 de noviembre de 2000",
+        año: 2000,
+        bits: "32 bits",
+        velocidad: "1.3–3.8 GHz",
+        transistores: "42 millones",
+        fabricante: "Intel",
+        wiki: "Pentium_4",
+        descripcion:
+        "Utilizó la arquitectura NetBurst."
+    },
+
+    {
+        nombre: "AMD Athlon XP",
+        fecha: "2001",
+        año: 2001,
+        bits: "32 bits",
+        velocidad: "1.33–2.25 GHz",
+        transistores: "37.5 millones",
+        fabricante: "AMD",
+        wiki: "Athlon_XP",
+        descripcion:
+        "Familia basada en la microarquitectura K7."
+    },
+
+    {
+        nombre: "Intel Pentium M",
+        fecha: "2003",
+        año: 2003,
+        bits: "32 bits",
+        velocidad: "900 MHz–2.26 GHz",
+        transistores: "77 millones",
+        fabricante: "Intel",
+        wiki: "Pentium_M",
+        descripcion:
+        "Diseñado principalmente para equipos portátiles."
+    },
+
+    {
+        nombre: "AMD Athlon 64",
+        fecha: "23 de septiembre de 2003",
+        año: 2003,
+        bits: "64 bits",
+        velocidad: "1.8–2.4 GHz",
+        transistores: "105.9 millones",
+        fabricante: "AMD",
+        wiki: "Athlon_64",
+        descripcion:
+        "Popularizó la arquitectura x86-64."
+    },
+
+    {
+        nombre: "Intel Pentium D",
+        fecha: "2005",
+        año: 2005,
+        bits: "64 bits",
+        velocidad: "2.66–3.73 GHz",
+        transistores: "230–376 millones",
+        fabricante: "Intel",
+        wiki: "Pentium_D",
+        descripcion:
+        "Procesador de escritorio de doble núcleo."
+    },
+
+    {
+        nombre: "AMD Athlon 64 X2",
+        fecha: "2005",
+        año: 2005,
+        bits: "64 bits",
+        velocidad: "2.0–3.2 GHz",
+        transistores: "154 millones",
+        fabricante: "AMD",
+        wiki: "Athlon_64_X2",
+        descripcion:
+        "Procesador de doble núcleo."
+    },
+
+    {
+        nombre: "Intel Core 2 Duo",
+        fecha: "2006",
+        año: 2006,
+        bits: "64 bits",
+        velocidad: "1.6–3.33 GHz",
+        transistores: "291 millones",
+        fabricante: "Intel",
+        wiki: "Core_2",
+        descripcion:
+        "Generación con gran mejora de eficiencia."
+    },
+
+    {
+        nombre: "AMD Phenom",
+        fecha: "2007",
+        año: 2007,
+        bits: "64 bits",
+        velocidad: "1.8–2.6 GHz",
+        transistores: "450 millones",
+        fabricante: "AMD",
+        wiki: "Phenom_(processor)",
+        descripcion:
+        "Familia de procesadores multinúcleo."
+    },
+
+    {
+        nombre: "Intel Core i7 Nehalem",
+        fecha: "2008",
+        año: 2008,
+        bits: "64 bits",
+        velocidad: "2.66–3.2 GHz",
+        transistores: "731 millones",
+        fabricante: "Intel",
+        wiki: "Nehalem_(microarchitecture)",
+        descripcion:
+        "Introdujo importantes mejoras de rendimiento."
+    },
+
+    {
+        nombre: "AMD Phenom II",
+        fecha: "2009",
+        año: 2009,
+        bits: "64 bits",
+        velocidad: "2.5–3.7 GHz",
+        transistores: "758 millones",
+        fabricante: "AMD",
+        wiki: "Phenom_II",
+        descripcion:
+        "Evolución del Phenom fabricada en 45 nm."
+    },
+
+    {
+        nombre: "Intel Core i7 Sandy Bridge",
+        fecha: "2011",
+        año: 2011,
+        bits: "64 bits",
+        velocidad: "2.5–3.4 GHz",
+        transistores: "1.16 mil millones",
+        fabricante: "Intel",
+        wiki: "Sandy_Bridge",
+        descripcion:
+        "Integró CPU y gráficos en el mismo chip."
+    },
+
+    {
+        nombre: "AMD FX-8350",
+        fecha: "2012",
+        año: 2012,
+        bits: "64 bits",
+        velocidad: "4.0–4.2 GHz",
+        transistores: "1.2 mil millones",
+        fabricante: "AMD",
+        wiki: "Bulldozer_(microarchitecture)",
+        descripcion:
+        "Procesador de escritorio de alta frecuencia."
+    },
+
+    {
+        nombre: "Intel Core i7-4770K",
+        fecha: "2013",
+        año: 2013,
+        bits: "64 bits",
+        velocidad: "3.5–3.9 GHz",
+        transistores: "1.4 mil millones",
+        fabricante: "Intel",
+        wiki: "Haswell_(microarchitecture)",
+        descripcion:
+        "Procesador Haswell de cuarta generación Core."
+    },
+
+    {
+        nombre: "AMD Ryzen 7 1800X",
+        fecha: "2017",
+        año: 2017,
+        bits: "64 bits",
+        velocidad: "3.6–4.0 GHz",
+        transistores: "4.8 mil millones",
+        fabricante: "AMD",
+        wiki: "Zen_(first_generation)",
+        descripcion:
+        "Marcó el regreso competitivo de AMD al alto rendimiento."
+    },
+
+    {
+        nombre: "Apple A12 Bionic",
+        fecha: "2018",
+        año: 2018,
+        bits: "64 bits",
+        velocidad: "2.49 GHz",
+        transistores: "6.9 mil millones",
+        fabricante: "Apple",
+        wiki: "Apple_A12",
+        descripcion:
+        "SoC de Apple fabricado en 7 nm."
+    },
+
+    {
+        nombre: "AMD Ryzen 9 3950X",
+        fecha: "2019",
+        año: 2019,
+        bits: "64 bits",
+        velocidad: "3.5–4.7 GHz",
+        transistores: "9.89 mil millones",
+        fabricante: "AMD",
+        wiki: "Zen_2",
+        descripcion:
+        "Procesador de 16 núcleos y 32 hilos."
+    },
+
+    {
+        nombre: "Apple M1",
+        fecha: "2020",
+        año: 2020,
+        bits: "64 bits",
+        velocidad: "3.2 GHz",
+        transistores: "16 mil millones",
+        fabricante: "Apple",
+        wiki: "Apple_M1",
+        descripcion:
+        "SoC diseñado por Apple para computadoras personales."
+    },
+
+    {
+        nombre: "AMD Ryzen 9 5950X",
+        fecha: "2020",
+        año: 2020,
+        bits: "64 bits",
+        velocidad: "3.4–4.9 GHz",
+        transistores: "4.15 mil millones",
+        fabricante: "AMD",
+        wiki: "Zen_3",
+        descripcion:
+        "Procesador de 16 núcleos y 32 hilos."
+    },
+
+    {
+        nombre: "Intel Core i9-12900K",
+        fecha: "2021",
+        año: 2021,
+        bits: "64 bits",
+        velocidad: "3.2–5.2 GHz",
+        transistores: "≈10 mil millones",
+        fabricante: "Intel",
+        wiki: "Alder_Lake",
+        descripcion:
+        "Procesador híbrido con núcleos de rendimiento y eficiencia."
+    },
+
+    {
+        nombre: "Apple M2",
+        fecha: "2022",
+        año: 2022,
+        bits: "64 bits",
+        velocidad: "3.5 GHz aprox.",
+        transistores: "20 mil millones",
+        fabricante: "Apple",
+        wiki: "Apple_M2",
+        descripcion:
+        "Segunda generación de Apple Silicon."
+    },
+
+    {
+        nombre: "AMD Ryzen 9 7950X",
+        fecha: "2022",
+        año: 2022,
+        bits: "64 bits",
+        velocidad: "4.5–5.7 GHz",
+        transistores: "≈13.1 mil millones",
+        fabricante: "AMD",
+        wiki: "Zen_4",
+        descripcion:
+        "Procesador Zen 4 de 16 núcleos y 32 hilos."
+    },
+
+    {
+        nombre: "Intel Core i9-14900K",
+        fecha: "2023",
+        año: 2023,
+        bits: "64 bits",
+        velocidad: "3.2–6.0 GHz",
+        transistores: "≈25 mil millones",
+        fabricante: "Intel",
+        wiki: "Raptor_Lake",
+        descripcion:
+        "Procesador de escritorio de alto rendimiento."
+    },
+
+    {
+        nombre: "Apple M3",
+        fecha: "2023",
+        año: 2023,
+        bits: "64 bits",
+        velocidad: "≈4.05 GHz",
+        transistores: "25 mil millones",
+        fabricante: "Apple",
+        wiki: "Apple_M3",
+        descripcion:
+        "Chip Apple Silicon fabricado mediante proceso de 3 nm."
+    },
+
+    {
+        nombre: "AMD Ryzen 9 9950X",
+        fecha: "2024",
+        año: 2024,
+        bits: "64 bits",
+        velocidad: "4.3–5.7 GHz",
+        transistores: "≈16.3 mil millones",
+        fabricante: "AMD",
+        wiki: "Zen_5",
+        descripcion:
+        "Procesador Zen 5 de 16 núcleos y 32 hilos."
+    }
+
+];
+
+
+/* ==========================================
+   OBTENER IMAGEN DE WIKIPEDIA
+========================================== */
+
+async function obtenerImagen(procesador, imagen) {
+
+    try {
+
+        const url =
+            `https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(procesador.wiki)}`;
+
+        const respuesta =
+            await fetch(url);
+
+        if (!respuesta.ok) {
+
+            throw new Error(
+                "No se pudo obtener la imagen"
+            );
+
+        }
+
+        const datos =
+            await respuesta.json();
+
+        if (
+            datos.thumbnail &&
+            datos.thumbnail.source
+        ) {
+
+            imagen.src =
+                datos.thumbnail.source;
+
+        } else {
+
+            imagen.src =
+                imagenFallback(procesador);
+
+        }
+
+    } catch (error) {
+
+        imagen.src =
+            imagenFallback(procesador);
+
+    }
+
+}
+
+
+/* ==========================================
+   IMAGEN DE RESPALDO
+========================================== */
+
+function imagenFallback(procesador) {
+
+    return (
+        "https://dummyimage.com/800x500/16091f/f97316&text="
+        +
+        encodeURIComponent(
+            procesador.nombre
+        )
+    );
+
+}
+
+
+/* ==========================================
+   CREAR TARJETA
+========================================== */
+
+function crearTarjeta(
+    procesador,
+    indice
+) {
+
+    const item =
+        document.createElement("article");
+
+    item.className =
+        "timeline-item";
+
+    item.style.animationDelay =
+        `${indice * 0.04}s`;
+
+    const dot =
+        document.createElement("div");
+
+    dot.className =
+        "dot";
+
+    item.appendChild(dot);
+
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "card";
+
+
+    /* IMAGEN */
+
+    const imagen =
+        document.createElement("img");
+
+    imagen.className =
+        "processor-image";
+
+    imagen.alt =
+        `Imagen del ${procesador.nombre}`;
+
+    imagen.src =
+        imagenFallback(procesador);
+
+    obtenerImagen(
+        procesador,
+        imagen
+    );
+
+    card.appendChild(imagen);
+
+
+    /* AÑO */
+
+    const año =
+        document.createElement("span");
+
+    año.className =
+        "year";
+
+    año.textContent =
+        procesador.año;
+
+    card.appendChild(año);
+
+
+    /* NOMBRE */
+
+    const titulo =
+        document.createElement("h2");
+
+    titulo.textContent =
+        procesador.nombre;
+
+    card.appendChild(titulo);
+
+
+    /* FABRICANTE */
+
+    const fabricante =
+        document.createElement("div");
+
+    fabricante.className =
+        "manufacturer";
+
+    fabricante.textContent =
+        procesador.fabricante;
+
+    card.appendChild(fabricante);
+
+
+    /* DESCRIPCIÓN */
+
+    const descripcion =
+        document.createElement("p");
+
+    descripcion.className =
+        "description";
+
+    descripcion.textContent =
+        procesador.descripcion;
+
+    card.appendChild(descripcion);
+
+
+    /* ESPECIFICACIONES */
+
+    const specs =
+        document.createElement("div");
+
+    specs.className =
+        "specs";
+
+
+    specs.appendChild(
+        crearSpec(
+            "Fecha",
+            procesador.fecha
+        )
+    );
+
+
+    specs.appendChild(
+        crearSpec(
+            "Bits",
+            procesador.bits
+        )
+    );
+
+
+    specs.appendChild(
+        crearSpec(
+            "Velocidad",
+            procesador.velocidad
+        )
+    );
+
+
+    specs.appendChild(
+        crearSpec(
+            "Transistores",
+            procesador.transistores
+        )
+    );
+
+
+    card.appendChild(specs);
+
+    item.appendChild(card);
+
+    return item;
+
+}
+
+
+/* ==========================================
+   CREAR ESPECIFICACIÓN
+========================================== */
+
+function crearSpec(
+    nombre,
+    valor
+) {
+
+    const div =
+        document.createElement("div");
+
+    div.className =
+        "spec";
+
+
+    const small =
+        document.createElement("small");
+
+    small.textContent =
+        nombre;
+
+
+    const strong =
+        document.createElement("strong");
+
+    strong.textContent =
+        valor;
+
+
+    div.appendChild(small);
+
+    div.appendChild(strong);
+
+    return div;
+
+}
+
+
+/* ==========================================
+   MOSTRAR PROCESADORES
+========================================== */
+
+function mostrarProcesadores(lista) {
+
+    const timeline =
+        document.getElementById(
+            "timeline"
+        );
+
+    timeline.innerHTML = "";
+
+
+    document.getElementById(
+        "total"
+    ).textContent =
+        lista.length;
+
+
+    if (lista.length === 0) {
+
+        const mensaje =
+            document.createElement(
+                "div"
+            );
+
+        mensaje.className =
+            "no-results";
+
+        mensaje.textContent =
+            "No se encontraron procesadores.";
+
+        timeline.appendChild(
+            mensaje
+        );
+
+        return;
+
+    }
+
+
+    lista.forEach(
+        (
+            procesador,
+            indice
+        ) => {
+
+            timeline.appendChild(
+                crearTarjeta(
+                    procesador,
+                    indice
+                )
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================
+   FILTROS
+========================================== */
+
+function filtrar() {
+
+    const texto =
+        document
+            .getElementById(
+                "search"
+            )
+            .value
+            .toLowerCase();
+
+
+    const fabricante =
+        document
+            .getElementById(
+                "manufacturer"
+            )
+            .value;
+
+
+    const resultado =
+        procesadores.filter(
+            procesador => {
+
+                const coincideTexto =
+
+                    procesador.nombre
+                        .toLowerCase()
+                        .includes(texto)
+
+                    ||
+
+                    procesador.fabricante
+                        .toLowerCase()
+                        .includes(texto)
+
+                    ||
+
+                    procesador.año
+                        .toString()
+                        .includes(texto);
+
+
+                const coincideFabricante =
+
+                    fabricante === "todos"
+
+                    ||
+
+                    procesador.fabricante ===
+                    fabricante;
+
+
+                return (
+                    coincideTexto &&
+                    coincideFabricante
+                );
+
+            }
+        );
+
+
+    mostrarProcesadores(
+        resultado
+    );
+
+}
+
+
+/* ==========================================
+   EVENTOS
+========================================== */
+
+document
+    .getElementById("search")
+    .addEventListener(
+        "input",
+        filtrar
+    );
+
+
+document
+    .getElementById("manufacturer")
+    .addEventListener(
+        "change",
+        filtrar
+    );
+
+
+/* ==========================================
+   INICIAR PÁGINA
+========================================== */
+
+mostrarProcesadores(
+    procesadores
+);
+
+</script>
+
+</body>
+</html>
+```
